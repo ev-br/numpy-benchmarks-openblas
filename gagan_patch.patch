@@ -1,0 +1,135 @@
+diff --git a/benchmarks/benchmarks/bench_linalg.py b/benchmarks/benchmarks/bench_linalg.py
+index f3eb819c18..7bb40789bf 100644
+--- a/benchmarks/benchmarks/bench_linalg.py
++++ b/benchmarks/benchmarks/bench_linalg.py
+@@ -1,20 +1,28 @@
+-from .common import Benchmark, get_squares_, get_indexes_rand, TYPES1
++from .common import Benchmark, get_squares_, get_indexes_rand, TYPES1, bench_sizes
++from ast import literal_eval as make_tuple
+ 
+ import numpy as np
+ 
+ 
+ class Eindot(Benchmark):
+     def setup(self):
+-        self.a = np.arange(60000.0).reshape(150, 400)
++        eindot_sizes = bench_sizes['bench_linalg.Eindot']
++        a_dims = make_tuple(eindot_sizes["a"])
++        b_dims = make_tuple(eindot_sizes["b"])
++        self.a = np.arange(a_dims[0] * a_dims[1] * 1.0).reshape(a_dims[0], a_dims[1])
+         self.ac = self.a.copy()
+         self.at = self.a.T
+         self.atc = self.a.T.copy()
+-        self.b = np.arange(240000.0).reshape(400, 600)
+-        self.c = np.arange(600)
+-        self.d = np.arange(400)
++        self.b = np.arange(b_dims[0] * b_dims[1] * 1.0).reshape(b_dims[0], b_dims[1])
++        self.c = np.arange(int(eindot_sizes["c"]))
++        self.d = np.arange(int(eindot_sizes["d"]))
+ 
+-        self.a3 = np.arange(480000.).reshape(60, 80, 100)
+-        self.b3 = np.arange(192000.).reshape(80, 60, 40)
++        a3_dims = make_tuple(eindot_sizes["a3"])
++        b3_dims = make_tuple(eindot_sizes["b3"])
++        self.a3 = np.arange(a3_dims[0] * a3_dims[1] * a3_dims[2] * 1.0).reshape(
++            a3_dims[0], a3_dims[1], a3_dims[2])
++        self.b3 = np.arange(b3_dims[0] * b3_dims[1] * b3_dims[2] * 1.0).reshape(
++            b3_dims[0], b3_dims[1], b3_dims[2])
+ 
+     def time_dot_a_b(self):
+         np.dot(self.a, self.b)
+@@ -111,7 +119,7 @@ def time_norm_small_array(self):
+ 
+     def time_det_small_array(self):
+         np.linalg.det(self.array_5_5)
+-        
++
+ class Lstsq(Benchmark):
+     def setup(self):
+         self.a = get_squares_()['float64']
+@@ -124,18 +132,31 @@ class Einsum(Benchmark):
+     param_names = ['dtype']
+     params = [[np.float32, np.float64]]
+     def setup(self, dtype):
+-        self.one_dim_small = np.arange(600, dtype=dtype)
+-        self.one_dim = np.arange(3000, dtype=dtype)
+-        self.one_dim_big = np.arange(480000, dtype=dtype)
+-        self.two_dim_small = np.arange(1200, dtype=dtype).reshape(30, 40)
+-        self.two_dim = np.arange(240000, dtype=dtype).reshape(400, 600)
+-        self.three_dim_small = np.arange(10000, dtype=dtype).reshape(10,100,10)
+-        self.three_dim = np.arange(24000, dtype=dtype).reshape(20, 30, 40)
++        self.one_dim_small = np.arange(int(bench_sizes["bench_linalg.Einsum"]["one_dim_small"]), dtype=dtype)
++        self.one_dim = np.arange(int(bench_sizes["bench_linalg.Einsum"]["one_dim"]), dtype=dtype)
++        self.one_dim_big = np.arange(int(bench_sizes["bench_linalg.Einsum"]["one_dim_big"]), dtype=dtype)
++
++        dim2s = make_tuple(bench_sizes["bench_linalg.Einsum"]["two_dim_small"])
++        dim2 = make_tuple(bench_sizes["bench_linalg.Einsum"]["two_dim"])
++        self.two_dim_small = np.arange(dim2s[0] * dim2s[1], dtype=dtype).reshape(dim2s[0], dim2s[1])
++        self.two_dim = np.arange(dim2[0] * dim2[1], dtype=dtype).reshape(dim2[0], dim2[1])
++        dim3s = make_tuple(bench_sizes["bench_linalg.Einsum"]["three_dim_small"])
++        dim3 = make_tuple(bench_sizes["bench_linalg.Einsum"]["three_dim"])
++        self.three_dim_small = np.arange(dim3s[0] * dim3s[1] * dim3s[2], dtype=dtype).reshape(
++            dim3s[0], dim3s[1], dim3s[2])
++        self.three_dim = np.arange(dim3[0] * dim3[1] * dim3[2], dtype=dtype).reshape(
++            dim3[0], dim3[1], dim3[2])
+         # non_contiguous arrays
+-        self.non_contiguous_dim1_small = np.arange(1, 80, 2, dtype=dtype)
+-        self.non_contiguous_dim1 = np.arange(1, 4000, 2, dtype=dtype)
+-        self.non_contiguous_dim2 = np.arange(1, 2400, 2, dtype=dtype).reshape(30, 40)
+-        self.non_contiguous_dim3 = np.arange(1, 48000, 2, dtype=dtype).reshape(20, 30, 40)
++        nc_dim1s = int(bench_sizes["bench_linalg.Einsum"]["non_contiguous_dim1_small"])
++        nc_dim1 = int(bench_sizes["bench_linalg.Einsum"]["non_contiguous_dim1"])
++        nc_dim2 = make_tuple(bench_sizes["bench_linalg.Einsum"]["non_contiguous_dim2"])
++        nc_dim3 = make_tuple(bench_sizes["bench_linalg.Einsum"]["non_contiguous_dim3"])
++        self.non_contiguous_dim1_small = np.arange(1, nc_dim1s, 2, dtype=dtype)
++        self.non_contiguous_dim1 = np.arange(1, nc_dim1, 2, dtype=dtype)
++        self.non_contiguous_dim2 = np.arange(1, nc_dim2[0] * nc_dim2[1] * 2, 2, dtype=dtype).reshape(
++            nc_dim2[0], nc_dim2[1])
++        self.non_contiguous_dim3 = np.arange(1, nc_dim3[0] * nc_dim3[1] * nc_dim3[2] * 2, 2, dtype=dtype).reshape(
++            nc_dim3[0], nc_dim3[1], nc_dim3[2])
+ 
+     # outer(a,b): trigger sum_of_products_contig_stride0_outcontig_two
+     def time_einsum_outer(self, dtype):
+@@ -198,8 +219,10 @@ class LinAlgTransposeVdot(Benchmark):
+     # Smaller for speed
+     # , (128, 128), (256, 256), (512, 512),
+     # (1024, 1024)
+-    params = [[(16, 16), (32, 32),
+-               (64, 64)], TYPES1]
++    size_linalg_tvdot = bench_sizes["bench_linalg.LinAlgTransposeVdot"]
++    params = [[make_tuple(size_linalg_tvdot["dim1"]),
++               make_tuple(size_linalg_tvdot["dim2"]),
++               make_tuple(size_linalg_tvdot["dim3"])], TYPES1]
+     param_names = ['shape', 'npdtypes']
+ 
+     def setup(self, shape, npdtypes):
+diff --git a/benchmarks/benchmarks/common.py b/benchmarks/benchmarks/common.py
+index 5cbc2f38f3..66ac5f5d9a 100644
+--- a/benchmarks/benchmarks/common.py
++++ b/benchmarks/benchmarks/common.py
+@@ -1,9 +1,12 @@
++import json
+ import numpy as np
+ import random
+ import os
+ from functools import lru_cache
+ from pathlib import Path
+ 
++bench_sizes = json.load(open(os.getenv("NUMPY_BENCHMARK_SIZE_FILE")))
++
+ # Various pre-crafted datasets/variables for testing
+ # !!! Must not be changed -- only appended !!!
+ # while testing numpy we better not rely on numpy to produce random
+@@ -12,10 +15,10 @@
+ # but will seed it nevertheless
+ np.random.seed(1)
+ 
+-nx, ny = 1000, 1000
++nx, ny = int(bench_sizes["nx"]), int(bench_sizes["ny"])
+ # reduced squares based on indexes_rand, primarily for testing more
+ # time-consuming functions (ufunc, linalg, etc)
+-nxs, nys = 100, 100
++nxs, nys = int(bench_sizes["nxs"]), int(bench_sizes["nys"])
+ 
+ # a list of interesting types to test
+ TYPES1 = [
