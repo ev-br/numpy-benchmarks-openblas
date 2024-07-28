@@ -21,7 +21,7 @@ if __name__ == "__main__":
     for script in scripts:
         if args.script is not None and args.script not in script:
             continue
-        cmd = "python {}".format(script)
+        cmd = "python3 {}".format(script)
         cmd_args = " --set-commit-hash={} --benchmark-name={} --hardware={} --result-dir={} ".format(
                     args.commit_hash, args.benchmark_name, args.hardware, args.result_dir)
         if (script == "numpy-benchmarks-openblas/CompareSimplifiedBenchmarkResults.py" and
@@ -32,5 +32,5 @@ if __name__ == "__main__":
             os.chdir("numpy")
         else:
             if script == "numpy-benchmarks-openblas/CompareSimplifiedBenchmarkResults.py":
-                cmd = "python ../{}".format(script)
+                cmd = "python3 ../{}".format(script)
             os.system(cmd + cmd_args)

@@ -1,0 +1,9 @@
+{
+    "arch": "x86_64",
+    "cpu": "Intel(R) Xeon(R) Platinum 8259CL CPU @ 2.50GHz",
+    "machine": "ip-172-31-25-34",
+    "num_cpu": "2",
+    "os": "Linux 6.8.0-1009-aws",
+    "ram": "8008640",
+    "version": 1
+}
